@@ -117,7 +117,7 @@ import {
   decryptBody,
   decryptKey,
 } from "./utils/encrypt.ts";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Settings, X, Lock, Unlock, ShieldCheck, Key } from "lucide-react";
 
 const EmptyState = ({
@@ -288,13 +288,6 @@ function App() {
   const [showPub, setShowPub] = useState(false);
   const [showPriv, setShowPriv] = useState(false);
   const [keySaveMsg, setKeySaveMsg] = useState("");
-  const [hasKeys, setHasKeys] = useState(false);
-
-  useEffect(() => {
-    setHasKeys(
-      !!(localStorage.getItem("public") && localStorage.getItem("private")),
-    );
-  }, [isSettingsOpen]);
 
   const { control, handleSubmit, reset: resetEncrypt } = useForm();
   const {
