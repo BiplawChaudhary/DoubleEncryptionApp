@@ -15,7 +15,7 @@ pipeline {
                 // Executing the script using the absolute path you specified.
                 // The script will handle the Maven build, killing the old process, and starting the new one.
 
-                sh '/home/rclserver/scripts/DoubleEncryptionApp.sh'
+                sh '/home/rclserver/scripts/DoubleEncApp.sh'
             }
         }
     }
