@@ -49,7 +49,7 @@
 // // Encrypt the body data using AES
 // export const encryptBody = (input:string, key:string,) => {
 //     const cipherText = CryptoJS.AES.encrypt(input, CryptoJS.enc.Utf8.parse(key), {
-        
+
 //         mode: CryptoJS.mode.CBC,
 //         padding: CryptoJS.pad.Pkcs7,
 //     });
@@ -59,7 +59,7 @@
 // // Decrypt the body data using AES
 // export const decryptBody = (cipherText: string, key: string,) => {
 //     const bytes = CryptoJS.AES.decrypt(cipherText, CryptoJS.enc.Utf8.parse(key), {
-     
+
 //         mode: CryptoJS.mode.CBC,
 //         padding: CryptoJS.pad.Pkcs7,
 //     });
@@ -69,60 +69,186 @@
 import JSEncrypt from "jsencrypt";
 import CryptoJS from "crypto-js";
 
+
 // Derive IV from AES key — both sides compute same IV without transmitting it
 const deriveIV = (key: string) => {
     return CryptoJS.enc.Utf8.parse(key.substring(0, 16));
 };
 
+
+
 // Generate a random AES key (16 bytes)
 
 export const generateAESKey = () => {
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
-    return Array.from(array)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
+  const array = new Uint8Array(16);
+  crypto.getRandomValues(array);
+  return Array.from(array)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
 };
 
 // Encrypt the AES key with RSA
 export const encryptKey = (data: string, publicKeyPEM: string) => {
-    const encrypt = new JSEncrypt();
-    encrypt.setPublicKey(publicKeyPEM);
-    return encrypt.encrypt(data);
+  const encrypt = new JSEncrypt();
+  encrypt.setPublicKey(publicKeyPEM);
+  return encrypt.encrypt(data);
 };
 
 // Decrypt the AES key using RSA
 export const decryptKey = (encryptedKey: string, privateKeyPEM: string) => {
-    const decrypt = new JSEncrypt();
-    decrypt.setPrivateKey(privateKeyPEM);
-    return decrypt.decrypt(encryptedKey);
+  const decrypt = new JSEncrypt();
+  decrypt.setPrivateKey(privateKeyPEM);
+  return decrypt.decrypt(encryptedKey);
 };
 
 // Encrypt the body data using AES
 
 export const encryptBody = (input: string, key: string) => {
-    return CryptoJS.AES.encrypt(
-        input,
-        CryptoJS.enc.Utf8.parse(key),
-        {
-            iv: deriveIV(key),        
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7,
-        }
-    ).toString();
+  return CryptoJS.AES.encrypt(input, CryptoJS.enc.Utf8.parse(key), {
+    iv: deriveIV(key),
+    mode: CryptoJS.mode.CBC,
+    padding: CryptoJS.pad.Pkcs7,
+  }).toString();
 };
 
 // Decrypt the body data using AES
 
+// export const decryptBody = (cipherTextB64: string, keyHex: string) => {
+//   const key = CryptoJS.enc.Hex.parse(keyHex);
+//   const iv = CryptoJS.enc.Hex.parse(keyHex.slice(0, 32));
+
+//   const decrypted = CryptoJS.AES.decrypt(cipherTextB64, key, {
+//     iv,
+//     mode: CryptoJS.mode.CBC,
+//     padding: CryptoJS.pad.Pkcs7,
+//   });
+
+//   return decrypted.toString(CryptoJS.enc.Utf8);  // UTF-8 string
+// };
+
 export const decryptBody = (cipherText: string, key: string) => {
-    const bytes = CryptoJS.AES.decrypt(
-        cipherText,
-        CryptoJS.enc.Utf8.parse(key),
-        {
-            iv: deriveIV(key),      
-            mode: CryptoJS.mode.CBC,
-            padding: CryptoJS.pad.Pkcs7,
+    console.log("Starting decryptBody...");
+    if (!key) return "";
+
+    const isValJson = (str: string) => {
+        try {
+            JSON.parse(str);
+            return true;
+        } catch (e) {
+            return false;
         }
-    );
-    return bytes.toString(CryptoJS.enc.Utf8);
+    };
+
+    const tryDecrypt = (keyData: any, ivData: any, mode: any, label: string) => {
+        try {
+            const bytes = CryptoJS.AES.decrypt(cipherText, keyData, {
+                iv: ivData,
+                mode: mode,
+                padding: CryptoJS.pad.Pkcs7,
+            });
+            const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+            if (decrypted) {
+                if (isValJson(decrypted)) {
+                    console.log(`✅ Success: ${label}`);
+                    return decrypted;
+                }
+                // If it's ALMOST JSON (starts with { and ends with }), it might be an IV mismatch
+                if (decrypted.trim().startsWith("{") && decrypted.trim().endsWith("}")) {
+                    console.warn(`⚠️ Close! ${label} produced JSON-like output but with errors.`);
+                    return decrypted; // Return it anyway for App.tsx to try and handle
+                }
+            }
+        } catch (e) { }
+        return null;
+    };
+
+    const keyUtf8 = CryptoJS.enc.Utf8.parse(key);
+    const zeroIV = CryptoJS.enc.Hex.parse("00000000000000000000000000000000");
+    const sameKeyIV = CryptoJS.enc.Utf8.parse(key.substring(0, 16));
+    const zeroStrIV = CryptoJS.enc.Utf8.parse("0000000000000000");
+
+    // Try various combinations
+    const attempts = [
+        { k: keyUtf8, iv: sameKeyIV, m: CryptoJS.mode.CBC, l: "Utf8 Key + Derived IV (UI)" },
+        { k: keyUtf8, iv: zeroIV, m: CryptoJS.mode.CBC, l: "Utf8 Key + Zero IV (Java)" },
+        { k: keyUtf8, iv: zeroStrIV, m: CryptoJS.mode.CBC, l: "Utf8 Key + '0' String IV" },
+        { k: keyUtf8, iv: undefined, m: CryptoJS.mode.ECB, l: "Utf8 Key + ECB Mode" },
+    ];
+
+    if (/^[0-9a-fA-F]+$/.test(key) && (key.length === 32 || key.length === 64)) {
+        const keyHex = CryptoJS.enc.Hex.parse(key);
+        const hexIV = CryptoJS.enc.Hex.parse(key.substring(0, 32));
+        attempts.push(
+            { k: keyHex, iv: zeroIV, m: CryptoJS.mode.CBC, l: "Hex Key + Zero IV" },
+            { k: keyHex, iv: hexIV, m: CryptoJS.mode.CBC, l: "Hex Key + Hex Key IV" },
+            { k: keyHex, iv: undefined, m: CryptoJS.mode.ECB, l: "Hex Key + ECB" }
+        );
+    }
+
+    const repairFirstBlock = (res: string, keyData: any, ivData: any, mode: any) => {
+        // If the first block is corrupted but the rest is fine, it's an IV mismatch.
+        // IV_correct = IV_wrong ^ P1_wrong ^ P1_correct
+        const prefixes = ['{"providerAlias"', '{"requestInfo"', '{"id"', '{"'];
+
+        for (const pref of prefixes) {
+            try {
+                const iv_wrong = ivData || zeroIV;
+                const p1_wrong_bytes = CryptoJS.enc.Utf8.parse(res.substring(0, 16));
+                const p1_correct_bytes = CryptoJS.enc.Utf8.parse(pref.padEnd(16, ' '));
+
+                // XOR them to find candidate IV
+                const iv_correct = iv_wrong.clone();
+                for (let i = 0; i < 16; i++) {
+                    const b_wrong = (p1_wrong_bytes.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+                    const b_correct = (p1_correct_bytes.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+                    const b_iv_wrong = (iv_wrong.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
+                    const b_iv_correct = b_iv_wrong ^ b_wrong ^ b_correct;
+
+                    // Update iv_correct
+                    const mask = 0xff << (24 - (i % 4) * 8);
+                    iv_correct.words[i >>> 2] = (iv_correct.words[i >>> 2] & ~mask) | (b_iv_correct << (24 - (i % 4) * 8));
+                }
+
+                const bytes = CryptoJS.AES.decrypt(cipherText, keyData, {
+                    iv: iv_correct,
+                    mode: mode,
+                    padding: CryptoJS.pad.Pkcs7,
+                });
+                const fixed = bytes.toString(CryptoJS.enc.Utf8);
+                if (isValJson(fixed)) {
+                    console.log(`🛠️ Auto-Repaired first block with prefix: ${pref}`);
+                    return fixed;
+                }
+            } catch (e) { }
+        }
+        return null;
+    };
+
+    let bestResult = "";
+    let bestConfig = null;
+    for (const a of attempts) {
+        const res = tryDecrypt(a.k, a.iv, a.m, a.l);
+        if (res) {
+            if (isValJson(res)) return res;
+            if (!bestResult) {
+                bestResult = res;
+                bestConfig = a;
+            }
+        }
+    }
+
+    if (bestResult && bestConfig) {
+        console.warn("Attempting Auto-Repair on best result...");
+        const repaired = repairFirstBlock(bestResult, bestConfig.k, bestConfig.iv, bestConfig.m);
+        if (repaired) return repaired;
+    }
+
+    if (bestResult) {
+        console.warn("Returning best (but imperfect) result. Check for corrupted first block.");
+        return bestResult;
+    }
+
+    console.error("All decryption attempts failed.");
+    return "";
 };
+

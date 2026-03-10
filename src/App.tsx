@@ -328,7 +328,26 @@ function App() {
     );
   };
 
-  const onDecrypt = (data: any) => {
+//  const onDecrypt = (envelope: { encryptedKey: string; encryptedBody: string }) => {
+//   if (!getPrivateKey()) {
+//     alert("Set your private key in Settings first.");
+//     return;
+//   }
+
+//   try {
+//     const dk = decryptKey(envelope.encryptedKey, getPrivateKey());
+//     const body = decryptBody(envelope.encryptedBody, dk);
+
+//     const parsed = body.startsWith("{") || body.startsWith("[") ? JSON.parse(body) : body;
+//     console.log("Decrypted body:", parsed);
+//     return parsed;
+//   } catch (err) {
+//     console.error("Decryption failed", err);
+//     alert("Decryption failed. Check input and keys.");
+//   }
+// };
+
+const onDecrypt = (data: any) => {
     if (!getPrivateKey()) {
       alert("Set your private key in Settings first.");
       return;
@@ -344,12 +363,24 @@ function App() {
         return;
       }
       const dk = decryptKey(encryptedKey, getPrivateKey());
+      console.log("RSA Decrypted AES Key:", dk);
       if (!dk) {
         alert("Key decryption failed. Check your private key.");
         return;
       }
       const body = decryptBody(encryptedBody, dk);
-      const p2 = typeof body === "string" ? JSON.parse(body) : body;
+      console.log("Raw Decrypted Body:", body);
+
+      let p2;
+      try {
+        p2 = typeof body === "string" && body.trim() ? JSON.parse(body) : body;
+      } catch (e) {
+        console.error("JSON Parse Error:", e);
+        alert("Decryption succeeded but the result is not valid JSON. Check the console for the raw output.");
+        setDecryptResult(body); // Show raw body anyway
+        return;
+      }
+
       setDecryptResult(
         typeof p2 === "object" ? JSON.stringify(p2, null, 2) : String(p2),
       );
