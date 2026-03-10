@@ -12,9 +12,25 @@ const ResultBox = ({
 }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(content);
+  const fallbackCopy = (text: string): void => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
     setCopied(true);
+  };
+
+  const handleCopy = (): void => {
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard
+        .writeText(content)
+        .then(() => setCopied(true))
+        .catch(() => fallbackCopy(content));
+    } else {
+      fallbackCopy(content);
+    }
     setTimeout(() => setCopied(false), 2000);
   };
 
