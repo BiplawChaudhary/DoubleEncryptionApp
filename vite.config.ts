@@ -2,19 +2,26 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { ViteImageOptimizer } from "vite-plugin-image-optimizer";
-
+import { visualizer } from "rollup-plugin-visualizer";
 export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    ViteImageOptimizer({
+    !process.env.CI && ViteImageOptimizer({
       include: ["src/assets/**/*"],
       exclude: ["public/**/*"],
       jpg: { quality: 75 },
       webp: { quality: 75 },
     }),
-  ],
+    !process.env.CI && visualizer({
+      filename: "stats.html",
+      emitFile: true,
+      template: "treemap",
+    }),
+  ].filter(Boolean),
+
   base: "/doubleencryption_app/",
+
   build: {
     minify: "esbuild",
     sourcemap: false,
