@@ -1,109 +1,3 @@
-// import { useForm } from "react-hook-form";
-// import Input from "./components/input.tsx";
-// import {
-//   generateAESKey,
-//   generateIV,
-//   encryptBody,
-//   encryptKey,
-//   decryptBody,
-//   decryptKey,
-// } from "./utils/encrypt.ts";
-// import { useState } from "react";
-
-// function App() {
-//   const [decryptSystem, setDecryptSystem] = useState("");
-//   const { control, handleSubmit } = useForm();
-//   const { control: decryptcontrol, handleSubmit: decryptHandleSubmit } =
-//     useForm();
-//   const { control: keysControl, handleSubmit: keysSubmit } = useForm();
-//   const iv = generateIV();
-//   const publicKey = localStorage.getItem("public");
-//   const privatekey = localStorage.getItem("private");
-//   const onSubmit = (data) => {
-//     console.log(data);
-//     const aesKey = generateAESKey();
-//     console.log(aesKey);
-//     const Encryptdata = {
-//       encryptedBody: encryptBody(JSON.stringify(data?.encrypt), aesKey, iv),
-//       encryptedKey: encryptKey(aesKey, publicKey),
-//     };
-//     console.log(Encryptdata);
-//   };
-
-//   const onDecryptData = (data) => {
-//     console.log("raw data:", data);
-
-//     // Parse the inner JSON string
-//     console.log("1");
-//     const parsed =
-//       typeof data?.decrypt === "string"
-//         ? JSON.parse(data.decrypt)
-//         : data?.decrypt;
-//     console.log("2");
-
-//     const body = parsed?.encryptedBody;
-//     const key = parsed?.encryptedKey;
-//     console.log("3");
-
-//     if (!body || !key) {
-//       console.error("Missing encryptedBody or encryptedKey", parsed);
-//       return;
-//     }
-//     console.log("4");
-//     const decryptedKey = decryptKey(key, privatekey);
-//     console.log("5");
-
-//     // if (!decryptedKey) {
-//     //   console.error("decryptKey returned empty/null");
-//     //   return;
-//     // }
-
-//     const decryptedBody = decryptBody(body, decryptedKey, iv);
-//     const decryptedParse =
-//       typeof decryptedBody === "string"
-//         ? JSON.parse(decryptedBody)
-//         : decryptedBody;
-//     console.log("decryptedBody:", decryptedParse);
-//     setDecryptSystem(decryptedParse);
-//   };
-
-//   const setprivateKey =
-//     "MIICdQIBADANBgkqhkiG9w0BAQEFAASCAl8wggJbAgEAAoGBAKw0xxaGIs1SXw8+yWG0kAooKFS3z5BG+crtBcNixl1XxInW20NhGN1BiiALiC1QBYTAmu66Nt+2u224Apeuq4hT9d9UHZAyI9KEsy45FXe+2lpfaOIuUVuhwsZUX//i8fQmUaSUvFWyg5j7T3xwIZZtGa68deHHoENUJulRL2czAgMBAAECgYACrnW1K5SKJvC0/5DKNTIS/moWW6BfSkOkfclbsAOPu4ijbtWOOIpXE6ivdA6ESh0z4n3nHr4xAJrti/J6Yy1nlOQAOewZNwm9hNoJv+3b82oVhfBx6oMNnTMRogX9/fRDOuqRzVJ1Xroijs1QD5hN56OSagkvvSLZ6DZtIh11jQJBAPz3xTNFUwXYMk9vNrVO2QR9u7Jz/L/TyQ0IXoQ/ofMDSpGb0l4NcZ4xjzU2YwTeWkQ7+DaA2Y1O5fC6iCyi7RcCQQCuRTDZpSewwmR7HW9OsTOrLRkWk1lWqrIADJp2iflbXF3G7pXo2h2ax140AY2W0fkRywLBwurL6wEOjMdbVoBFAkB09qLpZ95RT3tDmypyfnh9SR1mD5cHowbMzdfV0g4xbI4n8SI9dn3YJRYQBouWDrEx54CGwuDUI2zR941LBjIVAkBD5oOdGaN4VJWP/q0CzTpjhMPUrv7NLN8D8+UvMJ0uwrNrMkTIoEuOpgWHX9+KFy/jheUCF+8iGuOjhqiaZv69AkBDVHbgUfqp7NxbNMTggfSXX8A3cLtLReFQczCD/zioanFdKEV1fCYAEVqQojIcCk54Sy5hasBo5oUVgKtWWXcB";
-//   const setPublickey =
-//     "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCsNMcWhiLNUl8PPslhtJAKKChUt8+QRvnK7QXDYsZdV8SJ1ttDYRjdQYogC4gtUAWEwJruujbftrttuAKXrquIU/XfVB2QMiPShLMuORV3vtpaX2jiLlFbocLGVF//4vH0JlGklLxVsoOY+098cCGWbRmuvHXhx6BDVCbpUS9nMwIDAQAB";
-
-//   const onKeySubmit = (data) => {
-//     console.log(data);
-//     localStorage.setItem("public", setPublickey);
-//     localStorage.setItem("private", setprivateKey);
-//   };
-//   return (
-//     <>
-//       <form onSubmit={handleSubmit(onSubmit)}>
-//         <Input name={"encrypt"} control={control} label={"Encrypt"} />
-//         <button type={"submit"}>asdf</button>
-//       </form>
-//       <form onSubmit={decryptHandleSubmit(onDecryptData)}>
-//         <Input name={"decrypt"} control={decryptcontrol} label={"Decrypt"} />
-//         <button type={"submit"}>Decrypt</button>
-//       </form>
-
-//       <form onSubmit={keysSubmit(onKeySubmit)}>
-//         <Input
-//           name={"privateKey"}
-//           control={keysControl}
-//           label={"Private Key"}
-//         />
-//         <Input name={"publicKey"} control={keysControl} label={"public Key"} />
-//         <button type={"submit"}>asdf</button>
-//       </form>
-//       {decryptSystem && <div>{decryptSystem}</div>}
-//     </>
-//   );
-// }
-
-// export default App;
-
 import { useForm } from "react-hook-form";
 import Input from "./components/input.tsx";
 import ResultBox from "./components/ResultBox.tsx";
@@ -172,8 +66,7 @@ function TabPanel({
                       : "bg-white text-pink-600 border-pink-400 shadow-sm shadow-pink-100"
                     : "bg-transparent text-blue-300 border-transparent hover:text-blue-400"
                 }`}
-              style={{ fontFamily: "Syne, sans-serif" }}
-            >
+              style={{ fontFamily: "Syne, sans-serif" }}>
               <Icon size={20} />
               {label}
             </button>
@@ -270,8 +163,7 @@ function SectionLabel({ icon: Icon, label, color, bgClass }: any) {
   return (
     <div className="flex items-center gap-3">
       <div
-        className={`w-11 h-11 rounded-xl border flex items-center justify-center ${bgClass}`}
-      >
+        className={`w-11 h-11 rounded-xl border flex items-center justify-center ${bgClass}`}>
         <Icon size={20} color={color} />
       </div>
       <span className="font-bold text-xl" style={{ fontFamily: "Syne", color }}>
@@ -316,10 +208,13 @@ function App() {
       return;
     }
     const aesKey = generateAESKey();
+
+    let payload = data?.encrypt;
+
     setEncryptResult(
       JSON.stringify(
         {
-          encryptedBody: encryptBody(JSON.stringify(data?.encrypt), aesKey),
+          encryptedBody: encryptBody(payload, aesKey),
           encryptedKey: encryptKey(aesKey, getPublicKey()),
         },
         null,
@@ -328,26 +223,26 @@ function App() {
     );
   };
 
-//  const onDecrypt = (envelope: { encryptedKey: string; encryptedBody: string }) => {
-//   if (!getPrivateKey()) {
-//     alert("Set your private key in Settings first.");
-//     return;
-//   }
+  //  const onDecrypt = (envelope: { encryptedKey: string; encryptedBody: string }) => {
+  //   if (!getPrivateKey()) {
+  //     alert("Set your private key in Settings first.");
+  //     return;
+  //   }
 
-//   try {
-//     const dk = decryptKey(envelope.encryptedKey, getPrivateKey());
-//     const body = decryptBody(envelope.encryptedBody, dk);
+  //   try {
+  //     const dk = decryptKey(envelope.encryptedKey, getPrivateKey());
+  //     const body = decryptBody(envelope.encryptedBody, dk);
 
-//     const parsed = body.startsWith("{") || body.startsWith("[") ? JSON.parse(body) : body;
-//     console.log("Decrypted body:", parsed);
-//     return parsed;
-//   } catch (err) {
-//     console.error("Decryption failed", err);
-//     alert("Decryption failed. Check input and keys.");
-//   }
-// };
+  //     const parsed = body.startsWith("{") || body.startsWith("[") ? JSON.parse(body) : body;
+  //     console.log("Decrypted body:", parsed);
+  //     return parsed;
+  //   } catch (err) {
+  //     console.error("Decryption failed", err);
+  //     alert("Decryption failed. Check input and keys.");
+  //   }
+  // };
 
-const onDecrypt = (data: any) => {
+  const onDecrypt = (data: any) => {
     if (!getPrivateKey()) {
       alert("Set your private key in Settings first.");
       return;
@@ -376,7 +271,9 @@ const onDecrypt = (data: any) => {
         p2 = typeof body === "string" && body.trim() ? JSON.parse(body) : body;
       } catch (e) {
         console.error("JSON Parse Error:", e);
-        alert("Decryption succeeded but the result is not valid JSON. Check the console for the raw output.");
+        alert(
+          "Decryption succeeded but the result is not valid JSON. Check the console for the raw output.",
+        );
         setDecryptResult(body); // Show raw body anyway
         return;
       }
@@ -418,8 +315,7 @@ const onDecrypt = (data: any) => {
               className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
               style={{
                 background: "linear-gradient(135deg, #6366f1, #ec4899)",
-              }}
-            >
+              }}>
               <ShieldCheck size={19} color="#fff" />
             </div>
             <div>
@@ -431,8 +327,7 @@ const onDecrypt = (data: any) => {
                     "linear-gradient(90deg, #4f46e5, #7c3aed, #ec4899)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
-                }}
-              >
+                }}>
                 RCL Encryption Util
               </div>
             </div>
@@ -441,8 +336,7 @@ const onDecrypt = (data: any) => {
           <button
             onClick={openSettings}
             title="Settings"
-            className="w-14 h-14 rounded-xl border border-blue-200 bg-white flex items-center justify-center cursor-pointer text-blue-400 transition-all duration-200 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50 hover:shadow-sm"
-          >
+            className="w-14 h-14 rounded-xl border border-blue-200 bg-white flex items-center justify-center cursor-pointer text-blue-400 transition-all duration-200 hover:border-indigo-300 hover:text-indigo-500 hover:bg-indigo-50 hover:shadow-sm">
             <Settings size={20} />
           </button>
         </header>
@@ -485,12 +379,10 @@ const onDecrypt = (data: any) => {
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
           }}
-          onClick={() => setIsSettingsOpen(false)}
-        >
+          onClick={() => setIsSettingsOpen(false)}>
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-[920px]  bg-white rounded-3xl border border-blue-100 shadow-2xl shadow-indigo-100 overflow-hidden panel-in"
-          >
+            className="w-full max-w-[920px]  bg-white rounded-3xl border border-blue-100 shadow-2xl shadow-indigo-100 overflow-hidden panel-in">
             {/* Accent stripe */}
             <div
               className="h-0.5"
@@ -507,15 +399,13 @@ const onDecrypt = (data: any) => {
                 </div>
                 <div
                   className="font-bold text-2xl text-slate-700"
-                  style={{ fontFamily: "Syne" }}
-                >
+                  style={{ fontFamily: "Syne" }}>
                   RSA Key Configuration
                 </div>
               </div>
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-200"
-              >
+                className="w-10 h-10 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center cursor-pointer text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all duration-200">
                 <X size={24} />
               </button>
             </div>
@@ -531,8 +421,7 @@ const onDecrypt = (data: any) => {
                   />
                   <span
                     className="text-amber-700 text-lg leading-relaxed"
-                    style={{ fontFamily: "Syne" }}
-                  >
+                    style={{ fontFamily: "Syne" }}>
                     Keys are stored only in your browser's localStorage. They
                     are never sent to any external server.
                   </span>
@@ -563,8 +452,7 @@ const onDecrypt = (data: any) => {
                       keySaveMsg.includes("saved")
                         ? "bg-emerald-50 border-emerald-200 text-emerald-600"
                         : "bg-red-50 border-red-200 text-red-500"
-                    }`}
-                  >
+                    }`}>
                     {keySaveMsg}
                   </div>
                 )}
@@ -575,16 +463,14 @@ const onDecrypt = (data: any) => {
                 <button
                   type="submit"
                   className="shimmer-btn flex-[2] py-3 rounded-2xl border-none text-white font-bold text-sm tracking-widest cursor-pointer uppercase"
-                  style={{ fontFamily: "Syne" }}
-                >
+                  style={{ fontFamily: "Syne" }}>
                   Save Keys
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsSettingsOpen(false)}
                   className="flex-1 py-3 rounded-2xl bg-pink-400 border text-white font-semibold text-lg tracking-wide cursor-pointer hover:bg-pink-600 transition-all duration-200"
-                  style={{ fontFamily: "Syne" }}
-                >
+                  style={{ fontFamily: "Syne" }}>
                   Cancel
                 </button>
               </div>

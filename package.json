@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "run-p build:types build:vite",
+    "build:types": "tsc -b",
+    "build:vite": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "build:ci": "npm ci && tsc -b && vite build"
+    "build:ci": "npm ci --prefer-offline && run-p build:types build:vite"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.18",
@@ -36,6 +38,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "npm-run-all": "^4.1.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.14.0",
     "vite": "^7.3.1"
