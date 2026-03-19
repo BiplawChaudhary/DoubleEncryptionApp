@@ -7,18 +7,18 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    !process.env.CI && ViteImageOptimizer({
+    !!process.env.VITE_OPTIMIZE_IMAGES && ViteImageOptimizer({
       include: ["src/assets/**/*"],
       exclude: ["public/**/*"],
       jpg: { quality: 75 },
       webp: { quality: 75 },
     }),
-    !process.env.CI && visualizer({
+    !!process.env.VITE_VISUALIZE && visualizer({
       filename: "stats.html",
       emitFile: true,
       template: "treemap",
     }),
-  ].filter(Boolean),
+  ].filter(Boolean) as any,
 
   base: "/doubleencryption_app/",
 
