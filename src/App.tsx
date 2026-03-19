@@ -214,6 +214,7 @@ function App() {
     setEncryptResult(
       JSON.stringify(
         {
+          // encryptedBody: encryptBody(JSON.stringify(payload), aesKey),
           encryptedBody: encryptBody(payload, aesKey),
           encryptedKey: encryptKey(aesKey, getPublicKey()),
         },
