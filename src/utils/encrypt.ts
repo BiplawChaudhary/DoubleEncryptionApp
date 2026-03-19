@@ -58,7 +58,7 @@ export const decryptBody = (cipherText: string, key: string) => {
     }
   };
 
-  const tryDecrypt = (keyData: any, ivData: any, mode: any, label: string) => {
+  const tryDecrypt = (keyData: any, ivData: any, mode: any) => {
     try {
       const bytes = CryptoJS.AES.decrypt(cipherText, keyData, {
         iv: ivData,
@@ -266,7 +266,7 @@ export const decryptBody = (cipherText: string, key: string) => {
   let bestResult = "";
   let bestConfig = null;
   for (const a of attempts) {
-    const res = tryDecrypt(a.k, a.iv, a.m, a.l);
+    const res = tryDecrypt(a.k, a.iv, a.m);
     if (res) {
       if (isValJson(res)) return res;
       const extracted = extractJson(res);
