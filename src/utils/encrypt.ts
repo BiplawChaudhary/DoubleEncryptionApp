@@ -387,7 +387,7 @@ export const decryptBody = (cipherText: string, key: string) => {
           const res = bytes.toString(CryptoJS.enc.Utf8);
           if (isValJson(res)) {
             console.log(
-              `🚀 Success after stripping 16-byte prepended IV using ${a.l}`,
+              ` Success after stripping 16-byte prepended IV using ${a.l}`,
             );
             return res;
           }
