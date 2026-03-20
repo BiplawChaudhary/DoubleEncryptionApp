@@ -7,14 +7,17 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     react(),
-    ViteImageOptimizer({
-      include: ["src/assets/**/*"],
-      exclude: ["public/**/*"],
-      jpg: { quality: 75 },
-      webp: { quality: 75 },
-    }),
-  ],
+    !!process.env.VITE_OPTIMIZE_IMAGES &&
+      ViteImageOptimizer({
+        include: ["src/assets/**/*"],
+        exclude: ["public/**/*"],
+        jpg: { quality: 75 },
+        webp: { quality: 75 },
+      }),
+  ].filter(Boolean) as any,
+
   base: "/doubleencryption_app/",
+
   build: {
     minify: "esbuild",
     sourcemap: false,
